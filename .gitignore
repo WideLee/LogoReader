@@ -100,3 +100,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# backup file
+*.*~
+
+# mac ds
+.DS_Store
+
