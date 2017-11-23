@@ -29,7 +29,7 @@ private:
     // the sequence of smallest indexes in the 32 groups
     int L[32] ={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
                ,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47};
-    // the other 3 inndex sequences of 3 different flipping operations
+    // the other 3 index sequences of 3 different flipping operations
     int G[32],B[32],GB[32];
     typedef int (*pfun)(int i);
 public:
@@ -69,7 +69,7 @@ public:
     static int geo_bright_inverted(int i) {
         return brightness_inverted(geometry_inverted(i));
     }
-    
+
     // generate the value seq according to the indexes in each index seq
     void getValueSequence(float* V, float* VG, float* VB, float* VGB, float* p) {
         for (int s = 0; s < 32; s++) {
@@ -79,7 +79,7 @@ public:
             VGB[s] = *(p+GB[s]);
         }
     }
-    // fing the value seq with the maximal alphabetical order
+    // find the value seq with the maximal alphabetical order
     int findTheDominantValueSeq(vector<float*> all) {
         int win[4] = {0,0,0,0};
         for (int i = 0; i < 32; i++) {
@@ -108,24 +108,25 @@ public:
         while (win[which] != 0) which++;
         return which;
     }
-    
+
     void revertTheDescriptor(float* p,pfun f) {
-        vector<float> temp(p, p + sizeof(p) / sizeof(float));
+        vector<float> temp(p, p + 128);
         for (int i = 0; i < 128; i++) {
             int where = f(i);
+
             p[i] = temp[where];
         }
     }
-    
+
     void max_sift(float* p) {
         // generate 4 value sequences according to 4 index sequences
         float V[32],VG[32],VB[32],VGB[32];
         getValueSequence(V, VG, VB, VGB, p);
-        
+
         // find the dominant value sequence
         vector<float*> all = {V,VG,VB,VGB};
         int which = findTheDominantValueSeq(all);
-       
+
         // revert the descriptor with the operationn represented by the dominant value sequence
         switch (which) {
             case 1:
@@ -141,7 +142,7 @@ public:
                 break;
         }
     }
-    
+
     void ratioTest(std::vector<DMatch>& output,Mat query_test, Mat train) {
         output.clear();
         BFMatcher matcher;
@@ -158,6 +159,39 @@ public:
                 output.push_back(bestMatch);
             }
         }
+    }
+
+    Mat generate_max_sift_descriptor(Mat &sift_descriptor) {
+        Mat max_sift_descriptor = sift_descriptor.clone();
+
+        float* test;
+        for (int i = 0; i < max_sift_descriptor.rows; i++) {
+
+            test = max_sift_descriptor.ptr<float>(i);
+//            printf("-- Test Before: ");
+//            for(int i = 0, count = 0; i < 128; i++) {
+//                if(i % 8 == 0) {
+//                    count ++;
+//                    printf("\n%2d ", count);
+//                }
+//                printf("%8.2f ", test[i]);
+//            }
+//            printf("\n");
+
+            max_sift(test);
+
+//            printf("-- Test After: ");
+//            for(int i = 0, count = 0; i < 128; i++) {
+//                if(i % 8 == 0) {
+//                    count ++;
+//                    printf("\n%2d ", count);
+//                }
+//                printf("%8.2f ", test[i]);
+//            }
+//            printf("\n");
+        }
+
+        return max_sift_descriptor;
     }
     
 };

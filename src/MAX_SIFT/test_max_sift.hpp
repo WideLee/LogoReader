@@ -205,6 +205,8 @@ public:
     
     // 用MAX-SIFT方法来匹配这些图片与基准图片，选取匹配点数最多的品牌作为结果
     int MaxsiftComCompareWithAllBasePicture(Mat img_test, vector<Mat> totalDescriptors) {
+        cv::imshow("test", img_test);
+        cv::waitKey(0);
         int pos = 0, max = -1;
         vector<KeyPoint> keypoints_test, keypoints;
         Mat descriptors_test;

@@ -1,12 +1,70 @@
 #include "test_max_sift.hpp"
 
+void matchAndShow(Mat mat1, Mat mat2, vector<KeyPoint> keypoints1, vector<KeyPoint> keypoints2, Mat des1, Mat des2, string title) {
+    std::vector<DMatch> matches;
+    FlannBasedMatcher matcher;
 
-int main()
+    matcher.match( des1, des2, matches );
+    double max_dist = 0; double min_dist = 100000;
+    //-- Quick calculation of max and min distances between keypoints
+    for( int i = 0; i < des1.rows; i++ )
+    { double dist = matches[i].distance;
+        if( dist < min_dist ) min_dist = dist;
+        if( dist > max_dist ) max_dist = dist;
+    }
+    printf("-- Max dist : %f \n", max_dist );
+    printf("-- Min dist : %f \n", min_dist );
+    printf("-- Matches: %ld\n", matches.size());
+
+    std::vector< DMatch > good_matches;
+    for( int i = 0; i < des1.rows; i++ )
+    { if( matches[i].distance <= max(1.5*min_dist, 0.02) )
+        { good_matches.push_back( matches[i]); }
+    }
+    //-- Draw only "good" matches
+    Mat img_matches;
+    drawMatches( mat1, keypoints1, mat2, keypoints2,
+                 good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
+                 vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS );
+    //-- Show detected matches
+    imshow( title, img_matches );
+}
+
+
+int main() {
+    MaxSIFT MAXSIFT;
+    Ptr<Feature2D> f2d = xfeatures2d::SIFT::create();
+
+    string img1 = "/Users/limkuan/Study/Research/IndoorLocalization/Resource/CarLogos51/Peugeot/1316.jpg";
+    string img2 = "/Users/limkuan/Desktop/1775.jpg";
+
+    Mat mat1 = imread(img1, IMREAD_GRAYSCALE);
+    Mat mat2 = imread(img2, IMREAD_GRAYSCALE);
+
+    vector<KeyPoint> keypoints1, keypoints2;
+    Mat descriptors1, descriptors2;
+    f2d->detect(mat1, keypoints1);
+    f2d->compute(mat1, keypoints1, descriptors1);
+
+    f2d->detect(mat2, keypoints2);
+    f2d->compute(mat2, keypoints2, descriptors2);
+
+    Mat maxsift1 = MAXSIFT.generate_max_sift_descriptor(descriptors1);
+    Mat maxsift2 = MAXSIFT.generate_max_sift_descriptor(descriptors2);
+
+    matchAndShow(mat1, mat2, keypoints1, keypoints2, maxsift1, maxsift2, "MaxSift");
+    matchAndShow(mat1, mat2, keypoints1, keypoints2, descriptors1, descriptors2, "Sift");
+
+    waitKey(0);
+}
+
+
+int _main()
 {
 	int number = 0;
 	cin >> number;
     TestMaxSIFT test_maxsift(number);
-    string path = "/root/Downloads/CarLogos51";
+    string path = "/Users/limkuan/Study/Research/IndoorLocalization/Resource/CarLogos51";
     
 	vector<float> re;
     vector<vector<string> > all = test_maxsift.getAllFiles(path);
